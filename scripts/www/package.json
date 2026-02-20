@@ -1,0 +1,21 @@
+{
+  "name": "bad_gramer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "cap:sync": "npx cap sync",
+    "cap:android": "npx cap add android",
+    "cap:open": "npx cap open android",
+    "build:android": "npm run cap:sync && cd android && gradlew assembleDebug"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@capacitor/android": "^8.1.0",
+    "@capacitor/cli": "^8.1.0",
+    "@capacitor/core": "^8.1.0"
+  }
+}
