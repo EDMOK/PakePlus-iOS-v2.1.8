@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" fill="none">
+  <!-- 背景圆 -->
+  <rect width="192" height="192" rx="40" fill="#F5F0E8"/>
+  <!-- 床的轮廓 -->
+  <path d="M24 132 L24 152 Q24 164 36 164 L156 164 Q168 164 168 152 L168 132" stroke="#4A4A4A" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <path d="M36 132 L36 72 Q36 54 60 54 L132 54 Q156 54 156 72 L156 132" stroke="#4A4A4A" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <!-- 枕头 -->
+  <rect x="50" y="60" width="36" height="24" rx="8" fill="#FFB5BA"/>
+  <rect x="106" y="60" width="36" height="24" rx="8" fill="#A8D8EA"/>
+  <!-- 床单线条 -->
+  <path d="M42 100 Q60 94 78 100" stroke="#D4CFC5" stroke-width="3" stroke-linecap="round"/>
+  <path d="M114 100 Q132 94 150 100" stroke="#D4CFC5" stroke-width="3" stroke-linecap="round"/>
+</svg>
