@@ -1,88 +1,1189 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="./static/css/styles.css" />
-        <meta
-            http-equiv="Content-Security-Policy"
-            content="default-src * 'unsafe-inline' 'unsafe-eval'"
-        />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Tauri App</title>
-        <script src="./static/js/main.js"></script>
-    </head>
-    <body>
-        <main class="container">
-            <h1>Welcome to TauriMan</h1>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#F5F0E8">
+  <meta name="format-detection" content="telephone=no">
+  <title>床位安排板</title>
+  <link rel="apple-touch-icon" href="icon.svg">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --bg: #F5F0E8;
+      --card-bg: #FFFEF7;
+      --bed-bg: #F0EDE5;
+      --bed-border: #D4CFC5;
+      --text-primary: #4A4A4A;
+      --text-secondary: #7A7A7A;
+      --accent: #E07A5F;
+      --pink: #FFB5BA;
+      --blue: #A8D8EA;
+      --green: #B8E0B8;
+      --yellow: #FFE5A0;
+      --purple: #D4B8E0;
+      --orange: #FFD4A8;
+      --cyan: #A8E6E0;
+      --red: #E85A5A;
+      --safe-area-top: env(safe-area-inset-top, 0px);
+      --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    }
 
-            <div class="row">
-                <a
-                    href="https://tauri.app"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    <img
-                        src="./assets/tauri.svg"
-                        class="logo tauri"
-                        alt="Tauri logo"
-                    />
-                </a>
-                <a
-                    href="https://pakeplus.com/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    <img
-                        src="https://hk.gh-proxy.org/https://github.com/Sjj1024/PakePlus/blob/main/app-icon.png"
-                        class="logo vanilla"
-                        alt="JavaScript logo"
-                    />
-                </a>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      overscroll-behavior: none;
+      touch-action: manipulation;
+    }
+
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", "Heiti SC", -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--bg);
+      min-height: 100vh;
+      color: var(--text-primary);
+      padding: 16px;
+      padding-top: calc(16px + var(--safe-area-top));
+      padding-bottom: calc(16px + var(--safe-area-bottom));
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--safe-area-bottom);
+      background: var(--bg);
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .title-icon {
+      width: 28px;
+      height: 28px;
+    }
+
+    .screenshot-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 17px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(224, 122, 95, 0.3);
+    }
+
+    .screenshot-btn:active {
+      transform: scale(0.95);
+    }
+
+    .btn-icon {
+      width: 18px;
+      height: 18px;
+    }
+
+    .capture-area {
+      background: var(--bg);
+      padding: 4px;
+      border-radius: 12px;
+    }
+
+    .houses-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .house-card {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      position: relative;
+    }
+
+    .house-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding-right: 20px;
+    }
+
+    .house-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      padding: 6px 8px;
+      margin: -6px -8px;
+      border-radius: 6px;
+    }
+
+    .house-name:active {
+      background: rgba(0,0,0,0.08);
+    }
+
+    .house-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .house-actions {
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .house-card:active .house-actions,
+    .house-card:hover .house-actions {
+      opacity: 1;
+    }
+
+    .action-btn {
+      width: 24px;
+      height: 24px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .action-btn:active {
+      transform: scale(0.9);
+    }
+
+    .action-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .edit-btn { background: #E8E8E8; }
+    .delete-btn { background: #FFE5E5; }
+    .delete-btn svg { stroke: var(--red); }
+
+    .add-house-card {
+      background: var(--bed-bg);
+      border: 2px dashed var(--bed-border);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .add-house-card:active {
+      background: #e5e0d8;
+      border-color: var(--accent);
+    }
+
+    .add-house-card span {
+      font-size: 14px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .beds-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .beds-grid .add-bed-card {
+      min-height: 64px;
+      background: var(--bed-bg);
+      border: 2px dashed var(--bed-border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text-secondary);
+      font-size: 12px;
+      gap: 4px;
+    }
+
+    .beds-grid .add-bed-card:active {
+      background: #e5e0d8;
+      border-color: var(--accent);
+    }
+
+    .beds-grid .add-bed-card svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .bed {
+      min-height: 64px;
+      background: var(--bed-bg);
+      border: 2px dashed var(--bed-border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      transition: all 0.15s;
+      position: relative;
+    }
+
+    .bed .bed-delete-btn {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 16px;
+      height: 16px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+      background: #FFE5E5;
+    }
+
+    .bed .bed-delete-btn svg {
+      width: 10px;
+      height: 10px;
+      stroke: var(--red);
+    }
+
+    .bed:active .bed-delete-btn,
+    .bed:hover .bed-delete-btn {
+      opacity: 1;
+    }
+
+    .bed.drag-over, .bed.touch-over {
+      border: 2px solid var(--accent);
+      background: #fff5f2;
+      transform: scale(1.02);
+    }
+
+    .bed.has-person {
+      border-style: solid;
+      border-color: var(--text-secondary);
+      background: #fff;
+    }
+
+    .bed-name {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .bed-name:active {
+      background: rgba(0,0,0,0.08);
+      color: var(--accent);
+    }
+
+    .bed-edit-icon {
+      width: 10px;
+      height: 10px;
+      opacity: 0;
+    }
+
+    .bed-name:active .bed-edit-icon {
+      opacity: 1;
+    }
+
+    .bed-empty {
+      font-size: 14px;
+      color: #999;
+      font-style: italic;
+    }
+
+    .bed-person {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      text-align: center;
+      word-break: break-all;
+      padding: 4px;
+    }
+
+    .person-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: grab;
+      transition: all 0.15s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+      position: relative;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    .person-tag:active {
+      transform: scale(0.95);
+    }
+
+    .person-tag.dragging {
+      opacity: 0.6;
+      transform: scale(1.05) rotate(2deg);
+      cursor: grabbing;
+    }
+
+    .person-tag.assigned {
+      opacity: 0.35;
+    }
+
+    .person-tag.assigned:active {
+      transform: none;
+    }
+
+    .person-name {
+      margin-right: 4px;
+    }
+
+    .person-icons {
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .person-tag:active .person-icons,
+    .person-tag:hover .person-icons {
+      opacity: 1;
+    }
+
+    .person-icon-btn {
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .person-icon-btn svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .delete-person-btn {
+      cursor: pointer;
+    }
+
+    .delete-person-btn svg {
+      stroke: var(--red);
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title-icon {
+      width: 22px;
+      height: 22px;
+    }
+
+    .section-actions {
+      margin-left: auto;
+    }
+
+    .add-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .add-btn:active {
+      transform: scale(0.95);
+    }
+
+    .add-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .person-pool {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      min-height: 80px;
+    }
+
+    .persons-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .person-pool.drag-over, .person-pool.touch-over {
+      background: #fff5f2;
+      outline: 2px dashed var(--accent);
+    }
+
+    /* 颜色类 */
+    .color-0 { background: var(--pink); }
+    .color-1 { background: var(--blue); }
+    .color-2 { background: var(--green); }
+    .color-3 { background: var(--yellow); }
+    .color-4 { background: var(--purple); }
+    .color-5 { background: var(--orange); }
+    .color-6 { background: var(--cyan); }
+
+    .capture-mode .screenshot-btn,
+    .capture-mode .house-actions,
+    .capture-mode .person-icons,
+    .capture-mode .add-btn,
+    .capture-mode .action-btn {
+      display: none !important;
+    }
+
+    .bed-placeholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(224, 122, 95, 0.2);
+      border: 2px solid var(--accent);
+      border-radius: 8px;
+      pointer-events: none;
+      display: none;
+    }
+
+    .bed.drag-over .bed-placeholder,
+    .bed.touch-over .bed-placeholder {
+      display: block;
+    }
+
+    .drag-ghost {
+      position: fixed;
+      pointer-events: none;
+      z-index: 10000;
+      opacity: 0.9;
+      transform: scale(1.05) rotate(2deg);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+
+    .hint-toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-size: 15px;
+      z-index: 10001;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .hint-toast.show {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title">
+      <svg class="title-icon" viewBox="0 0 64 64" fill="none" stroke="#4A4A4A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 44 L8 52 Q8 56 12 56 L52 56 Q56 56 56 52 L56 44" />
+        <path d="M12 44 L12 24 Q12 18 20 18 L44 18 Q52 18 52 24 L52 44" />
+        <path d="M18 24 Q18 20 22 20 L28 20 Q32 20 32 24 L32 28 Q32 32 28 32 L22 32 Q18 32 18 28 Z" />
+        <path d="M14 36 Q20 34 26 36" />
+        <path d="M38 36 Q44 34 50 36" />
+        <path d="M4 40 L4 48" />
+      </svg>
+      床位安排板
+    </h1>
+    <button class="screenshot-btn" onclick="takeScreenshot()">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+        <circle cx="8.5" cy="8.5" r="1.5" />
+        <polyline points="21 15 16 10 5 21" />
+      </svg>
+      截图
+    </button>
+  </div>
+
+  <div class="capture-area" id="captureArea">
+    <div class="houses-grid" id="housesGrid"></div>
+
+    <div style="display: flex; align-items: center; margin-bottom: 14px;">
+      <h2 class="section-title" style="margin-bottom: 0;">
+        <svg class="section-title-icon" viewBox="0 0 64 64" fill="none" stroke="#4A4A4A" stroke-width="2">
+          <circle cx="20" cy="16" r="8" />
+          <path d="M8 40 Q12 28 20 28 Q28 28 32 40" />
+          <circle cx="32" cy="20" r="8" />
+          <path d="M20 44 Q24 32 32 32 Q40 32 44 44" />
+          <circle cx="44" cy="16" r="8" />
+          <path d="M32 40 Q36 28 44 28 Q52 28 56 40" />
+        </svg>
+        人员池
+      </h2>
+      <div class="section-actions">
+        <button class="add-btn" onclick="addPerson()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          添加人员
+        </button>
+      </div>
+    </div>
+    <div class="person-pool" id="personPool">
+      <div class="persons-list" id="personsList"></div>
+    </div>
+  </div>
+
+  <div class="hint-toast" id="hintToast"></div>
+
+  <script>
+    const icons = {
+      house: `<svg viewBox="0 0 64 64" fill="none" stroke="#4A4A4A" stroke-width="2.5">
+        <path d="M32 12 L12 28 L12 52 L52 52 L52 28 Z" />
+        <path d="M24 52 L24 36 L40 36 L40 52" />
+        <path d="M28 26 L28 18 L36 18 L36 26" />
+      </svg>`,
+      edit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+      </svg>`,
+      delete: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="3 6 5 6 21 6" />
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      </svg>`,
+      plus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>`
+    };
+
+    const defaultHouses = [
+      { id: 'house1', name: '大姨家', beds: ['卧室1', '卧室2', '卧室3'] },
+      { id: 'house2', name: '外公家', beds: ['卧室1', '卧室2'] },
+      { id: 'house3', name: '我家', beds: ['卧室1', '卧室2', '卧室3', '卧室4'] },
+      { id: 'house4', name: '二姨家', beds: ['卧室1', '卧室2', '卧室3'] }
+    ];
+
+    const defaultPersons = ['爸妈', '大姨', '大姨父', '二姨', '二姨父', '外公', '外婆', '舅舅', '舅妈', '我'];
+    const personColors = ['color-0', 'color-1', 'color-2', 'color-3', 'color-4', 'color-5', 'color-6'];
+
+    let houses = JSON.parse(JSON.stringify(defaultHouses));
+    let persons = [...defaultPersons];
+    let assignments = {};
+    let personColorMap = {};
+    let houseIdCounter = 100;
+
+    let touchDragging = false;
+    let touchStartEl = null;
+    let touchGhost = null;
+    let draggedFromKey = null;
+    let currentDropTarget = null;
+
+    function init() {
+      loadState();
+      renderHouses();
+      renderPersons();
+      setupEventListeners();
+    }
+
+    function loadState() {
+      const savedPersons = localStorage.getItem('persons_list');
+      if (savedPersons) persons = JSON.parse(savedPersons);
+
+      const savedHouses = localStorage.getItem('houses_config');
+      if (savedHouses) {
+        houses = JSON.parse(savedHouses);
+        const maxId = Math.max(...houses.map(h => parseInt(h.id.replace('house', '')) || 0));
+        houseIdCounter = maxId + 1;
+      }
+
+      const saved = localStorage.getItem('bed_assignments');
+      if (saved) assignments = JSON.parse(saved);
+
+      const savedColors = localStorage.getItem('person_colors');
+      if (savedColors) {
+        personColorMap = JSON.parse(savedColors);
+      } else {
+        persons.forEach((person, index) => {
+          personColorMap[person] = personColors[index % personColors.length];
+        });
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem('persons_list', JSON.stringify(persons));
+      localStorage.setItem('houses_config', JSON.stringify(houses));
+      localStorage.setItem('bed_assignments', JSON.stringify(assignments));
+      localStorage.setItem('person_colors', JSON.stringify(personColorMap));
+    }
+
+    function showHint(text) {
+      const toast = document.getElementById('hintToast');
+      toast.textContent = text;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1500);
+    }
+
+    function confirmAction(message) {
+      return confirm(message);
+    }
+
+    // 房屋操作
+    function editHouseName(houseId) {
+      const house = houses.find(h => h.id === houseId);
+      if (!house) return;
+
+      const newName = prompt('请输入房屋名称:', house.name);
+      if (newName && newName.trim() && newName.trim() !== house.name) {
+        const oldName = house.name;
+        house.name = newName.trim();
+
+        const oldPrefix = `${oldName}-`;
+        const newPrefix = `${newName.trim()}-`;
+        const newAssignments = {};
+        for (const [key, person] of Object.entries(assignments)) {
+          newAssignments[key.startsWith(oldPrefix) ? newPrefix + key.slice(oldPrefix.length) : key] = person;
+        }
+        assignments = newAssignments;
+
+        saveState();
+        renderHouses();
+      }
+    }
+
+    function deleteHouse(houseId) {
+      const house = houses.find(h => h.id === houseId);
+      if (!house) return;
+
+      if (!confirmAction(`确定要删除"${house.name}"吗？床位上的人员安排将取消。`)) return;
+
+      // 移除该房屋的所有安排
+      const prefix = `${house.name}-`;
+      for (const key of Object.keys(assignments)) {
+        if (key.startsWith(prefix)) {
+          delete assignments[key];
+        }
+      }
+
+      houses = houses.filter(h => h.id !== houseId);
+      saveState();
+      renderHouses();
+      renderPersons();
+      showHint('房屋已删除');
+    }
+
+    function addHouse() {
+      const name = prompt('请输入新房屋名称:');
+      if (name && name.trim()) {
+        const newHouse = {
+          id: `house${houseIdCounter++}`,
+          name: name.trim(),
+          beds: ['卧室1', '卧室2']
+        };
+        houses.push(newHouse);
+        saveState();
+        renderHouses();
+        showHint('房屋已添加');
+      }
+    }
+
+    function editBedName(houseId, bedIndex) {
+      const house = houses.find(h => h.id === houseId);
+      if (!house) return;
+
+      const newName = prompt('请输入床位名称:', house.beds[bedIndex]);
+      if (newName && newName.trim() && newName.trim() !== house.beds[bedIndex]) {
+        const oldName = house.beds[bedIndex];
+        house.beds[bedIndex] = newName.trim();
+
+        const oldKey = `${house.name}-${oldName}`;
+        const newKey = `${house.name}-${newName.trim()}`;
+        if (assignments[oldKey]) {
+          assignments[newKey] = assignments[oldKey];
+          delete assignments[oldKey];
+        }
+
+        saveState();
+        renderHouses();
+      }
+    }
+
+    function addBed(houseId) {
+      const house = houses.find(h => h.id === houseId);
+      if (!house) return;
+
+      const bedCount = house.beds.length + 1;
+      const newBedName = `卧室${bedCount}`;
+      house.beds.push(newBedName);
+      saveState();
+      renderHouses();
+      showHint('床位已添加');
+    }
+
+    function deleteBed(houseId, bedIndex) {
+      const house = houses.find(h => h.id === houseId);
+      if (!house) return;
+
+      const bedName = house.beds[bedIndex];
+      if (!confirmAction(`确定要删除"${bedName}"吗？该床位上的人员安排将取消。`)) return;
+
+      // 移除该床位的安排
+      const key = `${house.name}-${bedName}`;
+      if (assignments[key]) {
+        delete assignments[key];
+      }
+
+      house.beds.splice(bedIndex, 1);
+      saveState();
+      renderHouses();
+      renderPersons();
+      showHint('床位已删除');
+    }
+
+    // 人员操作
+    function addPerson() {
+      const name = prompt('请输入人员名称:');
+      if (name && name.trim() && !persons.includes(name.trim())) {
+        persons.push(name.trim());
+        const colorIndex = persons.length % personColors.length;
+        personColorMap[name.trim()] = personColors[colorIndex];
+        saveState();
+        renderPersons();
+        showHint('人员已添加');
+      } else if (persons.includes(name?.trim())) {
+        showHint('该人员已存在');
+      }
+    }
+
+    function editPersonName(oldName) {
+      const index = persons.indexOf(oldName);
+      if (index === -1) return;
+
+      const newName = prompt('请输入人员名称:', oldName);
+      if (newName && newName.trim() && newName.trim() !== oldName && !persons.includes(newName.trim())) {
+        persons[index] = newName.trim();
+
+        if (personColorMap[oldName]) {
+          personColorMap[newName.trim()] = personColorMap[oldName];
+          delete personColorMap[oldName];
+        }
+
+        for (const [key, person] of Object.entries(assignments)) {
+          if (person === oldName) assignments[key] = newName.trim();
+        }
+
+        saveState();
+        renderPersons();
+        renderHouses();
+      }
+    }
+
+    function deletePerson(personName) {
+      if (!confirmAction(`确定要删除"${personName}"吗？`)) return;
+
+      // 移除该人员的床位安排
+      for (const [key, person] of Object.entries(assignments)) {
+        if (person === personName) {
+          delete assignments[key];
+        }
+      }
+
+      // 移除人员
+      persons = persons.filter(p => p !== personName);
+      delete personColorMap[personName];
+
+      saveState();
+      renderPersons();
+      renderHouses();
+      showHint('人员已删除');
+    }
+
+    // 渲染
+    function renderHouses() {
+      const grid = document.getElementById('housesGrid');
+      let html = houses.map(house => `
+        <div class="house-card">
+          <div class="house-header">
+            <div class="house-name" data-action="edit-house" data-id="${house.id}">
+              <span class="house-icon">${icons.house}</span>
+              ${house.name}
             </div>
-            <p>Click to get data</p>
-            <form class="row" id="greet-form">
-                <input id="greet-input" placeholder="Enter a name..." />
-                <button type="submit" id="getdata">GET DATA</button>
-            </form>
-            <div class="functions">
-                <a href="./book.html" target="_self">跳转到book.html</a>
-                <a
-                    href="https://www.baidu.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    >跳到百度blank
-                </a>
-                <a
-                    href="https://www.baidu.com"
-                    target="_self"
-                    rel="noopener noreferrer"
-                >
-                    跳到百度self
-                </a>
-                <button onclick="sayHello()">点击我</button>
-                <button onclick="sayHello()">下载文件</button>
-                <button onclick="sayHello()">上传文件</button>
-                <button onclick="sayHello()">访问相机</button>
-                <button onclick="sayHello()">访问麦克风</button>
-                <button onclick="sayHello()">访问相册</button>
-                <button class="btn" onclick="openWechat()">打开微信</button>
-                <button class="btn" onclick="openWechatScan()">
-                    打开扫一扫
-                </button>
-                <button class="btn" onclick="openZhihu()">打开知乎</button>
-                <button onclick="sayHello()">打开抖音</button>
-                <button onclick="sayHello()">用浏览器打开</button>
-                <button>打开知乎</button>
+            <div class="house-actions">
+              <button class="action-btn edit-btn" data-action="edit-house" data-id="${house.id}" title="编辑">
+                ${icons.edit}
+              </button>
+              <button class="action-btn delete-btn" data-action="delete-house" data-id="${house.id}" title="删除">
+                ${icons.delete}
+              </button>
             </div>
-            <p id="greet-msg"></p>
-            <img src="./static/image/cursor.jpeg" alt="logo" />
-            <video
-                src="https://hk.gh-proxy.org/https://github.com/Sjj1024/PakePlus/blob/main/docs/static/videos/pakeplus.mp4"
-                autoplay
-                controls
-                style="width: 100%; height: 100%"
-            ></video>
-            <audio src="./static/music/yin.mp3" controls></audio>
-        </main>
-    </body>
+          </div>
+          <div class="beds-grid">
+            ${house.beds.map((bed, index) => {
+              const key = `${house.name}-${bed}`;
+              const person = assignments[key];
+              return `
+                <div class="bed ${person ? 'has-person' : ''}" data-key="${key}" data-action="drop">
+                  <div class="bed-placeholder"></div>
+                  <button class="bed-delete-btn" data-action="delete-bed" data-house="${house.id}" data-index="${index}" title="删除床位">
+                    ${icons.delete}
+                  </button>
+                  <div class="bed-name" data-action="edit-bed" data-house="${house.id}" data-index="${index}">
+                    ${bed}
+                    <span class="bed-edit-icon">${icons.edit}</span>
+                  </div>
+                  ${person
+                    ? `<div class="bed-person" data-action="drag" data-person="${person}">${person}</div>`
+                    : '<div class="bed-empty">空</div>'
+                  }
+                </div>
+              `;
+            }).join('')}
+            <div class="add-bed-card" data-action="add-bed" data-house="${house.id}">
+              ${icons.plus}
+              <span>添加床位</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      // 添加房屋按钮
+      html += `
+        <div class="add-house-card" data-action="add-house">
+          <span>${icons.plus} 添加房屋</span>
+        </div>
+      `;
+
+      grid.innerHTML = html;
+    }
+
+    function renderPersons() {
+      const list = document.getElementById('personsList');
+      const assignedPersons = Object.values(assignments);
+
+      list.innerHTML = persons.map(person => {
+        const isAssigned = assignedPersons.includes(person);
+        const colorClass = personColorMap[person] || 'color-0';
+        return `
+          <span class="person-tag ${colorClass} ${isAssigned ? 'assigned' : ''}"
+                ${!isAssigned ? 'data-action="drag"' : ''}
+                data-person="${person}">
+            <span class="person-name">${person}</span>
+            <span class="person-icons">
+              <span class="person-icon-btn" data-action="edit-person" data-name="${person}">${icons.edit}</span>
+              <span class="person-icon-btn delete-person-btn" data-action="delete-person" data-name="${person}">${icons.delete}</span>
+            </span>
+          </span>
+        `;
+      }).join('');
+    }
+
+    // 事件处理
+    function setupEventListeners() {
+      const area = document.getElementById('captureArea');
+      const pool = document.getElementById('personPool');
+
+      area.addEventListener('touchstart', handleTouchStart, { passive: false });
+      area.addEventListener('touchmove', handleTouchMove, { passive: false });
+      area.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+      area.addEventListener('click', (e) => {
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
+
+        // 阻止bed上的按钮触发drop事件
+        e.stopPropagation();
+
+        const action = target.dataset.action;
+        const id = target.dataset.id;
+        const name = target.dataset.name;
+        const house = target.dataset.house;
+        const index = target.dataset.index;
+
+        switch(action) {
+          case 'edit-house': editHouseName(id); break;
+          case 'delete-house': deleteHouse(id); break;
+          case 'add-house': addHouse(); break;
+          case 'edit-bed': editBedName(house, parseInt(index)); break;
+          case 'add-bed': addBed(house); break;
+          case 'delete-bed': deleteBed(house, parseInt(index)); break;
+          case 'edit-person': editPersonName(name); break;
+          case 'delete-person': deletePerson(name); break;
+        }
+      });
+
+      setupDesktopDrag();
+    }
+
+    // 桌面端拖拽
+    function setupDesktopDrag() {
+      let draggedPerson = null;
+      let draggedFromKey = null;
+      const pool = document.getElementById('personPool');
+
+      document.addEventListener('dragstart', (e) => {
+        const personEl = e.target.closest('[data-action="drag"]');
+        if (!personEl) return;
+
+        draggedPerson = personEl.dataset.person;
+        e.target.classList.add('dragging');
+
+        const bed = e.target.closest('.bed');
+        draggedFromKey = bed ? bed.dataset.key : null;
+
+        e.dataTransfer.effectAllowed = 'move';
+      });
+
+      document.addEventListener('dragend', (e) => {
+        const personEl = e.target.closest('[data-action="drag"]');
+        if (personEl) personEl.classList.remove('dragging');
+        draggedPerson = null;
+        draggedFromKey = null;
+
+        document.querySelectorAll('.bed, .person-pool').forEach(el => {
+          el.classList.remove('drag-over', 'touch-over');
+        });
+      });
+
+      document.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        const bed = e.target.closest('.bed');
+        if (bed) bed.classList.add('drag-over');
+        if (draggedFromKey) pool.classList.add('drag-over');
+      });
+
+      document.addEventListener('dragleave', (e) => {
+        const bed = e.target.closest('.bed');
+        if (bed && !bed.contains(e.relatedTarget)) bed.classList.remove('drag-over');
+        if (!pool.contains(e.relatedTarget)) pool.classList.remove('drag-over');
+      });
+
+      document.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const bed = e.target.closest('.bed');
+
+        if (bed && draggedPerson) {
+          const targetKey = bed.dataset.key;
+
+          const existing = Object.entries(assignments).find(
+            ([k, p]) => p === draggedPerson && k !== targetKey
+          );
+          if (existing && draggedFromKey !== targetKey) delete assignments[existing[0]];
+          if (draggedFromKey && draggedFromKey !== targetKey) delete assignments[draggedFromKey];
+
+          assignments[targetKey] = draggedPerson;
+          saveState();
+          renderHouses();
+          renderPersons();
+        }
+
+        if (!bed && draggedFromKey) {
+          delete assignments[draggedFromKey];
+          saveState();
+          renderHouses();
+          renderPersons();
+        }
+
+        pool.classList.remove('drag-over');
+      });
+    }
+
+    // 触摸拖拽
+    function handleTouchStart(e) {
+      const dragEl = e.target.closest('[data-action="drag"]');
+      if (!dragEl) return;
+
+      e.preventDefault();
+
+      const touch = e.touches[0];
+      touchDragging = true;
+      touchStartEl = dragEl;
+
+      const person = dragEl.dataset.person;
+      const bed = dragEl.closest('.bed');
+      draggedFromKey = bed ? bed.dataset.key : null;
+
+      touchGhost = dragEl.cloneNode(true);
+      touchGhost.classList.add('drag-ghost');
+      touchGhost.style.width = dragEl.offsetWidth + 'px';
+      touchGhost.style.position = 'fixed';
+      touchGhost.style.left = (touch.clientX - dragEl.offsetWidth / 2) + 'px';
+      touchGhost.style.top = (touch.clientY - dragEl.offsetHeight / 2) + 'px';
+      touchGhost.style.pointerEvents = 'none';
+      document.body.appendChild(touchGhost);
+
+      dragEl.classList.add('dragging');
+      showHint('拖放到床位上');
+    }
+
+    function handleTouchMove(e) {
+      if (!touchDragging || !touchGhost) return;
+      e.preventDefault();
+
+      const touch = e.touches[0];
+      touchGhost.style.left = (touch.clientX - touchGhost.offsetWidth / 2) + 'px';
+      touchGhost.style.top = (touch.clientY - touchGhost.offsetHeight / 2) + 'px';
+
+      touchGhost.style.display = 'none';
+      const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+      touchGhost.style.display = '';
+
+      const bed = elemBelow?.closest('.bed');
+      const pool = document.getElementById('personPool');
+
+      document.querySelectorAll('.bed, .person-pool').forEach(el => el.classList.remove('touch-over'));
+
+      if (bed) {
+        bed.classList.add('touch-over');
+        currentDropTarget = { type: 'bed', el: bed };
+      } else if (pool.contains(elemBelow) && draggedFromKey) {
+        pool.classList.add('touch-over');
+        currentDropTarget = { type: 'pool', el: pool };
+      } else {
+        currentDropTarget = null;
+      }
+    }
+
+    function handleTouchEnd(e) {
+      if (!touchDragging) return;
+
+      const person = touchStartEl?.dataset.person;
+
+      if (currentDropTarget && person) {
+        if (currentDropTarget.type === 'bed') {
+          const targetKey = currentDropTarget.el.dataset.key;
+
+          const existing = Object.entries(assignments).find(
+            ([k, p]) => p === person && k !== targetKey
+          );
+          if (existing && draggedFromKey !== targetKey) delete assignments[existing[0]];
+          if (draggedFromKey && draggedFromKey !== targetKey) delete assignments[draggedFromKey];
+
+          assignments[targetKey] = person;
+          saveState();
+          renderHouses();
+          renderPersons();
+          showHint('已安排');
+        } else if (currentDropTarget.type === 'pool' && draggedFromKey) {
+          delete assignments[draggedFromKey];
+          saveState();
+          renderHouses();
+          renderPersons();
+          showHint('已取消安排');
+        }
+      }
+
+      if (touchStartEl) touchStartEl.classList.remove('dragging');
+      if (touchGhost) {
+        touchGhost.remove();
+        touchGhost = null;
+      }
+
+      document.querySelectorAll('.bed, .person-pool').forEach(el => el.classList.remove('touch-over'));
+
+      touchDragging = false;
+      touchStartEl = null;
+      draggedFromKey = null;
+      currentDropTarget = null;
+    }
+
+    // 截图
+    function takeScreenshot() {
+      const captureArea = document.getElementById('captureArea');
+      document.body.classList.add('capture-mode');
+
+      html2canvas(captureArea, {
+        backgroundColor: '#F5F0E8',
+        scale: 2,
+        useCORS: true,
+        logging: false
+      }).then(canvas => {
+        document.body.classList.remove('capture-mode');
+
+        const link = document.createElement('a');
+        const date = new Date().toISOString().slice(0, 10);
+        link.download = `床位安排_${date}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showHint('截图已保存');
+      }).catch(err => {
+        document.body.classList.remove('capture-mode');
+        alert('截图失败，请重试');
+      });
+    }
+
+    init();
+  </script>
+</body>
 </html>
